@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Детейлинг Конфигуратор</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-color: #0b0d10;
+      --card-bg: #14171f;
+      --card-selected: #1c2230;
+      --border-color: #242a38;
+      --accent-color: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.25);
+      --text-main: #f3f4f6;
+      --text-muted: #8b949e;
+      --green: #22c55e;
+      --gold: #f59e0b;
+      --gis-color: #00b341;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 14px 14px 110px 14px;
+      overflow-x: hidden;
+    }
+
+    /* ШАПКА */
+    .header {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .header h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+    .gis-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #142319;
+      border: 1px solid var(--gis-color);
+      color: #4ade80;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 179, 65, 0.15);
+    }
+    .gis-badge:active { transform: scale(0.96); }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin: 16px 0 8px 4px;
+    }
+
+    /* 1. КУЗОВ */
+    .car-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .car-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .car-card.active {
+      border-color: var(--accent-color);
+      background: var(--card-selected);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+    .car-card .icon { font-size: 20px; margin-bottom: 2px; }
+    .car-card .name { font-size: 11px; font-weight: 600; }
+
+    /* ВКЛАДКИ КАТЕГОРИЙ (ТАБЫ) */
+    .category-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .category-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex: 1;
+      white-space: nowrap;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .tab-btn.active {
+      background: var(--accent-color);
+      border-color: var(--accent-color);
+      color: #fff;
+    }
+    .tab-badge {
+      background: #ef4444;
+      color: #fff;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 10px;
+      font-weight: 800;
+      display: none;
+    }
+
+    /* КАРТОЧКИ УСЛУГ (МУЛЬТИВЫБОР) */
+    .services-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .service-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .service-card.active {
+      border-color: var(--accent-color);
+      background: var(--card-selected);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+    .service-info { display: flex; align-items: center; gap: 12px; }
+    .service-check {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      border: 2px solid #3b4253;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .service-card.active .service-check {
+      background: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+    .service-card.active .service-check::after {
+      content: "✓";
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .service-text .title { font-size: 13px; font-weight: 600; }
+    .service-text .desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .service-price { font-size: 13px; font-weight: 700; color: var(--gold); }
+
+    /* ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ (UPSELL) */
+    .addons-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .addon-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .addon-card.active {
+      border-color: var(--green);
+      background: #102115;
+    }
+    .addon-info { display: flex; align-items: center; gap: 12px; }
+    .addon-checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid #3b4253;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .addon-card.active .addon-checkbox {
+      background: var(--green);
+      border-color: var(--green);
+    }
+    .addon-card.active .addon-checkbox::after {
+      content: "✓";
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .addon-title { font-size: 13px; font-weight: 500; }
+    .addon-price { font-size: 13px; font-weight: 700; color: var(--green); }
+
+    /* ВРЕМЯ */
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .time-pill {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .time-pill.active {
+      border-color: var(--accent-color);
+      background: var(--card-selected);
+      color: var(--accent-color);
+      font-weight: 700;
+    }
+
+    /* ПОЛЯ ВВОДА */
+    .inputs-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .input-field {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    .input-field:focus { border-color: var(--accent-color); }
+    .input-field.error { border-color: #ef4444 !important; background: #201315; }
+    .input-hint { font-size: 11px; color: #ef4444; margin-top: -4px; margin-left: 4px; display: none; }
+    textarea.input-field { resize: none; font-size: 13px; }
+
+    /* НИЖНЯЯ ПАНЕЛЬ С АНИМАЦИЕЙ РОЛЛА */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(18, 21, 28, 0.95);
+      backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border-color);
+      padding: 14px 16px 22px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+    .total-container .total-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+    
+    /* СПОКОЙНАЯ РОЛЛ-ЦЕНА БЕЗ ПУЛЬСАЦИИ */
+    .total-price {
+      font-size: 21px;
+      font-weight: 800;
+      color: #fff;
+      display: inline-block;
+      font-variant-numeric: tabular-nums; /* Цифры одинаковой ширины для плавного счетчика */
+    }
+
+    .submit-btn {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+      transition: all 0.2s ease;
+    }
+    .submit-btn:disabled {
+      background: #374151 !important;
+      color: #9ca3af !important;
+      box-shadow: none !important;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ШАПКА -->
+  <div class="header">
+    <h1>Black Star Auto Detail</h1>
+    <a href="https://2gis.kg/bishkek/search/Бишкек%2C%20Гражданская%20119" target="_blank" class="gis-badge" onclick="open2Gis(event)">
+  📍 г. Бишкек, ул. Гражданская, 119 • <b>Построить маршрут в 2GIS ↗</b>
+    </a>
+  </div>
+
+  <!-- 1. ТИП КУЗОВА -->
+  <div class="section-title">1. Тип кузова</div>
+  <div class="car-grid">
+    <div class="car-card active" onclick="selectCar(this, 'Седан', 1.0)">
+      <div class="icon">🚗</div>
+      <div class="name">Седан</div>
+    </div>
+    <div class="car-card" onclick="selectCar(this, 'Кроссовер', 1.25)">
+      <div class="icon">🚙</div>
+      <div class="name">Кроссовер</div>
+    </div>
+    <div class="car-card" onclick="selectCar(this, 'Внедорожник', 1.5)">
+      <div class="icon">🛻</div>
+      <div class="name">Джип / SUV</div>
+    </div>
+  </div>
+
+  <!-- 2. ВКЛАДКИ УСЛУГ (МУЛЬТИВЫБОР) -->
+  <div class="section-title">2. Услуги (можно выбрать несколько)</div>
+  <div class="category-tabs">
+    <button class="tab-btn active" onclick="switchTab(this, 'tab-body')">
+      🚘 Кузов <span id="badge-body" class="tab-badge">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab(this, 'tab-salon')">
+      🪑 Салон <span id="badge-salon" class="tab-badge">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab(this, 'tab-glass')">
+      💎 Стекла и фары <span id="badge-glass" class="tab-badge">0</span>
+    </button>
+  </div>
+
+  <!-- Вкладка: КУЗОВ -->
+  <div id="tab-body" class="services-list tab-content">
+    <div class="service-card active" onclick="toggleService(this, 'Полировка кузова (3 шага)', 6000, 'body')">
+      <div class="service-info">
+        <div class="service-check"></div>
+        <div class="service-text">
+          <div class="title">💎 Глубокая полировка кузова</div>
+          <div class="desc">Удаление царапин + зеркальный блеск</div>
+        </div>
+      </div>
+      <div class="service-price" id="price-polish">6 000 с</div>
+    </div>
+    <div class="service-card" onclick="toggleService(this, 'Бронепленка PPF (Зоны риска)', 18000, 'body')">
+      <div class="service-info">
+        <div class="service-check"></div>
+        <div class="service-text">
+          <div class="title">🛡 Бронепленка (Зоны риска)</div>
+          <div class="desc">Капот, бампер, фары, зеркала</div>
+        </div>
+      </div>
+      <div class="service-price" id="price-film">18 000 с</div>
+    </div>
+  </div>
+
+  <!-- Вкладка: САЛОН -->
+  <div id="tab-salon" class="services-list tab-content" style="display:none;">
+    <div class="service-card" onclick="toggleService(this, 'Химчистка салона (с разбором)', 6000, 'salon')">
+      <div class="service-info">
+        <div class="service-check"></div>
+        <div class="service-text">
+          <div class="title">✨ Химчистка с полным разбором</div>
+          <div class="desc">Снятие сидений, пола + сушка</div>
+        </div>
+      </div>
+      <div class="service-price" id="price-clean-full">6 000 с</div>
+    </div>
+    <div class="service-card" onclick="toggleService(this, 'Экспресс-химчистка (без разбора)', 3500, 'salon')">
+      <div class="service-info">
+        <div class="service-check"></div>
+        <div class="service-text">
+          <div class="title">🧽 Экспресс-чистка салона</div>
+          <div class="desc">Без снятия сидений, быстрая сушка</div>
+        </div>
+      </div>
+      <div class="service-price" id="price-clean-exp">3 500 с</div>
+    </div>
+  </div>
+
+  <!-- Вкладка: СТЕКЛА -->
+  <div id="tab-glass" class="services-list tab-content" style="display:none;">
+    <div class="service-card" onclick="toggleService(this, 'Бронирование оптики (фар)', 2500, 'glass')">
+      <div class="service-info">
+        <div class="service-check"></div>
+        <div class="service-text">
+          <div class="title">💡 Полировка + Броня фар</div>
+          <div class="desc">Полиуретановая пленка от сколов</div>
+        </div>
+      </div>
+      <div class="service-price" id="price-lights">2 500 с</div>
+    </div>
+    <div class="service-card" onclick="toggleService(this, 'Антидождь (все стекла)', 1500, 'glass')">
+      <div class="service-info">
+        <div class="service-check"></div>
+        <div class="service-text">
+          <div class="title">🌧 Нано-антидождь Aquapel</div>
+          <div class="desc">Все стекла, гидрофоб до 6 месяцев</div>
+        </div>
+      </div>
+      <div class="service-price" id="price-rain">1 500 с</div>
+    </div>
+  </div>
+
+  <!-- 3. ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ (UPSELL) -->
+  <div class="section-title">3. Рекомендуем добавить (Upsell)</div>
+  <div class="addons-list">
+    <div class="addon-card" onclick="toggleAddon(this, 'Керамика кузова 1 слой', 4000)">
+      <div class="addon-info">
+        <div class="addon-checkbox"></div>
+        <div class="addon-title">✨ Керамика кузова (1 слой)</div>
+      </div>
+      <div class="addon-price">+4 000 с</div>
+    </div>
+
+    <div class="addon-card" onclick="toggleAddon(this, 'Озонация салона (сухой туман)', 800)">
+      <div class="addon-info">
+        <div class="addon-checkbox"></div>
+        <div class="addon-title">💨 Озонация (устранение запахов)</div>
+      </div>
+      <div class="addon-price">+800 с</div>
+    </div>
+
+    <div class="addon-card" onclick="toggleAddon(this, 'Детейлинг подкапотного пространства', 1200)">
+      <div class="addon-info">
+        <div class="addon-checkbox"></div>
+        <div class="addon-title">⚙️ Мойка и консервация мотора</div>
+      </div>
+      <div class="addon-price">+1 200 с</div>
+    </div>
+  </div>
+
+  <!-- 4. ВРЕМЯ -->
+  <div class="section-title">4. Удобное время</div>
+  <div class="time-grid">
+    <div class="time-pill active" onclick="selectTime(this, 'Утро (10:00 - 14:00)')">🌅 Утро (10-14)</div>
+    <div class="time-pill" onclick="selectTime(this, 'День (14:00 - 18:00)')">🏙 День (14-18)</div>
+    <div class="time-pill" onclick="selectTime(this, 'Вечер (18:00 - 21:00)')">🌆 Вечер (18-21)</div>
+    <div class="time-pill" onclick="selectTime(this, 'Как можно скорее')">⚡️ Срочно в ближайший бокс</div>
+  </div>
+
+  <!-- 5. КОНТАКТЫ -->
+  <div class="section-title">5. Контакты и пожелания</div>
+  <div class="inputs-group">
+    <input type="text" id="client-car" class="input-field" placeholder="Марка и модель (например: BMW X5, Camry 70)">
+    <input type="text" id="client-name" class="input-field" placeholder="Ваше имя">
+    
+    <!-- ТЕЛЕФОН С УМНЫМ BACKSPACE -->
+    <div>
+      <input type="tel" id="client-phone" class="input-field" placeholder="+996 (___) __-__-__" autocomplete="tel">
+      <div id="phone-error" class="input-hint">Введите все 9 цифр номера: +996 (XXX) XX-XX-XX</div>
+    </div>
+
+    <!-- ПОЛЕ КОММЕНТАРИЯ -->
+    <textarea id="client-comment" class="input-field" rows="2" placeholder="Комментарий / пожелания к заказу (необязательно)"></textarea>
+  </div>
+
+  <!-- ПЛАВАЮЩИЙ БАР С МЯГКИМ РОЛЛ-СЧЕТЧИКОМ -->
+  <div class="bottom-bar">
+    <div class="total-container">
+      <div class="total-label">Итого расчет:</div>
+      <div class="total-price" id="total-display">6 000 сом</div>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitBooking()">Записаться</button>
+  </div>
+
+  <script>
+    var tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg) {
+      try {
+        tg.expand();
+        tg.enableClosingConfirmation();
+      } catch (e) {}
+    }
+
+    var bookingData = {
+      carType: 'Седан',
+      carMultiplier: 1.0,
+      selectedServices: [
+        { name: 'Полировка кузова (3 шага)', basePrice: 6000, category: 'body' }
+      ],
+      addons: [],
+      time: 'Утро (10:00 - 14:00)'
+    };
+
+    var basePrices = {
+      'Полировка кузова (3 шага)': 6000,
+      'Бронепленка PPF (Зоны риска)': 18000,
+      'Химчистка салона (с разбором)': 6000,
+      'Экспресс-химчистка (без разбора)': 3500,
+      'Бронирование оптики (фар)': 2500,
+      'Антидождь (все стекла)': 1500
+    };
+
+    var currentDisplayPrice = 6000;
+
+    // Переключение вкладок
+    function switchTab(btn, tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      document.getElementById(tabId).style.display = 'flex';
+      triggerHaptic();
+    }
+
+    // Выбор кузова
+    function selectCar(el, type, multiplier) {
+      document.querySelectorAll('.car-card').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+
+      bookingData.carType = type;
+      bookingData.carMultiplier = multiplier;
+
+      updateServicePricesUI();
+      calculateTotal();
+      triggerHaptic();
+    }
+
+    function updateServicePricesUI() {
+      document.getElementById('price-polish').innerText = Math.round(basePrices['Полировка кузова (3 шага)'] * bookingData.carMultiplier).toLocaleString() + ' с';
+      document.getElementById('price-film').innerText = Math.round(basePrices['Бронепленка PPF (Зоны риска)'] * bookingData.carMultiplier).toLocaleString() + ' с';
+      document.getElementById('price-clean-full').innerText = Math.round(basePrices['Химчистка салона (с разбором)'] * bookingData.carMultiplier).toLocaleString() + ' с';
+      document.getElementById('price-clean-exp').innerText = Math.round(basePrices['Экспресс-химчистка (без разбора)'] * bookingData.carMultiplier).toLocaleString() + ' с';
+      document.getElementById('price-lights').innerText = Math.round(basePrices['Бронирование оптики (фар)'] * bookingData.carMultiplier).toLocaleString() + ' с';
+      document.getElementById('price-rain').innerText = Math.round(basePrices['Антидождь (все стекла)'] * bookingData.carMultiplier).toLocaleString() + ' с';
+    }
+
+    // Мультивыбор услуг
+    function toggleService(el, name, basePrice, category) {
+      el.classList.toggle('active');
+
+      var foundIdx = bookingData.selectedServices.findIndex(s => s.name === name);
+      if (foundIdx > -1) {
+        bookingData.selectedServices.splice(foundIdx, 1);
+      } else {
+        bookingData.selectedServices.push({ name: name, basePrice: basePrice, category: category });
+      }
+
+      updateTabBadges();
+      calculateTotal();
+      triggerHaptic();
+    }
+
+    function updateTabBadges() {
+      var counts = { body: 0, salon: 0, glass: 0 };
+      bookingData.selectedServices.forEach(s => {
+        if (counts[s.category] !== undefined) counts[s.category]++;
+      });
+
+      ['body', 'salon', 'glass'].forEach(cat => {
+        var badge = document.getElementById('badge-' + cat);
+        if (counts[cat] > 0) {
+          badge.innerText = counts[cat];
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+      });
+    }
+
+    // Допы
+    function toggleAddon(el, name, price) {
+      el.classList.toggle('active');
+
+      var foundIdx = bookingData.addons.findIndex(a => a.name === name);
+      if (foundIdx > -1) {
+        bookingData.addons.splice(foundIdx, 1);
+      } else {
+        bookingData.addons.push({ name: name, price: price });
+      }
+
+      calculateTotal();
+      triggerHaptic();
+    }
+
+    // Время
+    function selectTime(el, time) {
+      document.querySelectorAll('.time-pill').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      bookingData.time = time;
+      triggerHaptic();
+    }
+
+    // ==========================================
+    // СПОКОЙНЫЙ ПЛАВНЫЙ РОЛЛ СЧЕТЧИКА (БЕЗ ПУЛЬСАЦИИ)
+    // ==========================================
+    var animationFrameId = null;
+
+    function calculateTotal() {
+      var servicesSum = bookingData.selectedServices.reduce((sum, s) => sum + Math.round(s.basePrice * bookingData.carMultiplier), 0);
+      var addonsSum = bookingData.addons.reduce((sum, a) => sum + a.price, 0);
+      var targetPrice = servicesSum + addonsSum;
+
+      animateRollPrice(currentDisplayPrice, targetPrice);
+      currentDisplayPrice = targetPrice;
+    }
+
+    function animateRollPrice(start, end) {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+      var el = document.getElementById('total-display');
+      if (start === end) {
+        el.innerText = end.toLocaleString() + ' сом';
+        return;
+      }
+
+      var duration = 220; // 220ms — быстрая, плавная прокрутка
+      var startTime = performance.now();
+
+      function roll(currentTime) {
+        var elapsed = currentTime - startTime;
+        var progress = Math.min(elapsed / duration, 1);
+        
+        // Easing out cubic для мягкой остановки
+        var easeOut = 1 - Math.pow(1 - progress, 3);
+        var current = Math.round(start + (end - start) * easeOut);
+        
+        el.innerText = current.toLocaleString() + ' сом';
+
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(roll);
+        } else {
+          el.innerText = end.toLocaleString() + ' сом';
+        }
+      }
+      animationFrameId = requestAnimationFrame(roll);
+    }
+
+    function triggerHaptic() {
+      if (tg && tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('light');
+      }
+    }
+
+   function open2Gis(e) {
+  var url = "https://2gis.kg/bishkek/search/Бишкек%2C%20Гражданская%20119";
+  if (tg && tg.openLink) {
+    e.preventDefault();
+    tg.openLink(url);
+  }
+}
+
+    // =====================================================
+    // УМНАЯ МАСКА ТЕЛЕФОНА С ПЛАВНЫМ BACKSPACE (БЕЗ ЗАСТРЕВАНИЙ)
+    // =====================================================
+    var phoneInput = document.getElementById('client-phone');
+
+    function formatKGPhoneString(digitsOnly) {
+      if (!digitsOnly) return '+996';
+      
+      var d = digitsOnly;
+      if (d.startsWith('0')) d = '996' + d.substring(1);
+      if (!d.startsWith('996')) d = '996' + d;
+      d = d.substring(0, 12); // ровно 12 цифр (996 + 9 цифр)
+
+      var res = '+996';
+      if (d.length > 3) res += ' (' + d.substring(3, 6);
+      if (d.length >= 6) res += ') ' + d.substring(6, 8);
+      if (d.length >= 8) res += '-' + d.substring(8, 10);
+      if (d.length >= 10) res += '-' + d.substring(10, 12);
+      return res;
+    }
+
+    // ПЕРЕХВАТ BACKSPACE: чтобы не застревать на разделителях '-', ')' или пробеле
+    phoneInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && this.selectionStart === this.selectionEnd) {
+        var cursor = this.selectionStart;
+        var val = this.value;
+
+        // Не даем удалять префикс '+996'
+        if (cursor <= 5) {
+          e.preventDefault();
+          return;
+        }
+
+        var prevChar = val[cursor - 1];
+        // Если прямо перед курсором тире, скобка или пробел — удаляем цифру ПЕРЕД ними!
+        if (['-', ' ', ')', '('].includes(prevChar)) {
+          e.preventDefault();
+          var digits = val.replace(/\D/g, '');
+          var digitsBeforeCursor = val.slice(0, cursor).replace(/\D/g, '').length;
+
+          if (digitsBeforeCursor > 3) {
+            var newDigits = digits.slice(0, digitsBeforeCursor - 1) + digits.slice(digitsBeforeCursor);
+            this.value = formatKGPhoneString(newDigits);
+            
+            // Ставим курсор на правильное место
+            var newCursor = Math.max(5, cursor - 2);
+            this.setSelectionRange(newCursor, newCursor);
+          }
+        }
+      }
+    });
+
+    phoneInput.addEventListener('input', function(e) {
+      var raw = e.target.value.replace(/\D/g, '');
+      e.target.value = formatKGPhoneString(raw);
+      document.getElementById('phone-error').style.display = 'none';
+      e.target.classList.remove('error');
+    });
+
+    // ==========================================
+    // ОТПРАВКА ЗАКАЗА
+    // ==========================================
+    function submitBooking() {
+      var carModel = document.getElementById('client-car').value.trim() || 'Не указана';
+      var name = document.getElementById('client-name').value.trim();
+      var comment = document.getElementById('client-comment').value.trim() || 'Нет';
+      var rawPhone = phoneInput.value.replace(/\D/g, '');
+
+      var lastSubmit = localStorage.getItem('last_booking_time');
+      var now = Date.now();
+      if (lastSubmit && (now - lastSubmit < 60000)) {
+        alert('Вы уже отправили заявку! Мастер студии свяжется с вами в течение 10 минут.');
+        return;
+      }
+
+      if (bookingData.selectedServices.length === 0 && bookingData.addons.length === 0) {
+        alert('Пожалуйста, выберите хотя бы одну услугу для записи');
+        return;
+      }
+
+      if (!name || name.length < 2) {
+        alert('Пожалуйста, укажите ваше имя');
+        document.getElementById('client-name').focus();
+        return;
+      }
+
+      // Проверка: ровно 12 цифр
+      if (rawPhone.length !== 12) {
+        phoneInput.classList.add('error');
+        document.getElementById('phone-error').style.display = 'block';
+        phoneInput.focus();
+        return;
+      }
+
+      var submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Отправка заявки...';
+
+      var servicesList = bookingData.selectedServices.map(s => s.name).join(' + ') || 'Только доп. услуги';
+      var addonsList = bookingData.addons.map(a => a.name).join(', ') || 'Нет';
+
+      var payload = {
+        carType: bookingData.carType,
+        carModel: carModel,
+        services: servicesList,
+        addons: addonsList,
+        time: bookingData.time,
+        totalPrice: currentDisplayPrice,
+        comment: comment,
+        name: name,
+        phone: phoneInput.value
+      };
+
+      localStorage.setItem('last_booking_time', now);
+
+      if (tg && tg.sendData) {
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        tg.sendData(JSON.stringify(payload));
+      } else {
+        alert('✅ Заявка успешно сформирована:\n' + JSON.stringify(payload, null, 2));
+        setTimeout(function() {
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Записаться';
+        }, 3000);
+      }
+    }
+
+    updateTabBadges();
+  </script>
+</body>
+</html>
