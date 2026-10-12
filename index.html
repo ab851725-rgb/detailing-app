@@ -322,372 +322,307 @@
       cursor: not-allowed;
     }
   </style>
+  <style>
+    .load-state { text-align:center; padding:60px 20px; color:var(--tg-theme-hint-color,#8e8e93); font-size:15px; line-height:1.5; }
+    .load-state .submit-btn { max-width:220px; margin:0 auto; }
+  </style>
 </head>
 <body>
-
   <!-- ШАПКА -->
   <div class="header">
-    <h1>Black Star Auto Detail</h1>
-    <a href="https://2gis.kg/bishkek/search/Бишкек%2C%20Гражданская%20119" target="_blank" class="gis-badge" onclick="open2Gis(event)">
-  📍 г. Бишкек, ул. Гражданская, 119 • <b>Построить маршрут в 2GIS ↗</b>
-    </a>
+    <h1 id="studio-name">Загрузка...</h1>
+    <a href="#" target="_blank" class="gis-badge" id="gis-link" style="display:none"></a>
   </div>
 
-  <!-- 1. ТИП КУЗОВА -->
-  <div class="section-title">1. Тип кузова</div>
-  <div class="car-grid">
-    <div class="car-card active" onclick="selectCar(this, 'Седан', 1.0)">
-      <div class="icon">🚗</div>
-      <div class="name">Седан</div>
-    </div>
-    <div class="car-card" onclick="selectCar(this, 'Кроссовер', 1.25)">
-      <div class="icon">🚙</div>
-      <div class="name">Кроссовер</div>
-    </div>
-    <div class="car-card" onclick="selectCar(this, 'Внедорожник', 1.5)">
-      <div class="icon">🛻</div>
-      <div class="name">Джип / SUV</div>
-    </div>
-  </div>
+  <div id="load-state" class="load-state">⏳ Загружаем прайс...</div>
 
-  <!-- 2. ВКЛАДКИ УСЛУГ (МУЛЬТИВЫБОР) -->
-  <div class="section-title">2. Услуги (можно выбрать несколько)</div>
-  <div class="category-tabs">
-    <button class="tab-btn active" onclick="switchTab(this, 'tab-body')">
-      🚘 Кузов <span id="badge-body" class="tab-badge">0</span>
-    </button>
-    <button class="tab-btn" onclick="switchTab(this, 'tab-salon')">
-      🪑 Салон <span id="badge-salon" class="tab-badge">0</span>
-    </button>
-    <button class="tab-btn" onclick="switchTab(this, 'tab-glass')">
-      💎 Стекла и фары <span id="badge-glass" class="tab-badge">0</span>
-    </button>
-  </div>
+  <div id="app" style="display:none">
+    <div class="section-title" id="t-cars">1. Тип кузова</div>
+    <div class="car-grid" id="car-grid"></div>
 
-  <!-- Вкладка: КУЗОВ -->
-  <div id="tab-body" class="services-list tab-content">
-    <div class="service-card active" onclick="toggleService(this, 'Полировка кузова (3 шага)', 6000, 'body')">
-      <div class="service-info">
-        <div class="service-check"></div>
-        <div class="service-text">
-          <div class="title">💎 Глубокая полировка кузова</div>
-          <div class="desc">Удаление царапин + зеркальный блеск</div>
-        </div>
+    <div class="section-title" id="t-services">2. Услуги (можно выбрать несколько)</div>
+    <div class="category-tabs" id="category-tabs"></div>
+    <div id="tabs-content"></div>
+
+    <div id="addons-block">
+      <div class="section-title" id="t-addons">3. Рекомендуем добавить</div>
+      <div class="addons-list" id="addons-list"></div>
+    </div>
+
+    <div id="times-block">
+      <div class="section-title" id="t-times">4. Удобное время</div>
+      <div class="time-grid" id="time-grid"></div>
+    </div>
+
+    <div class="section-title" id="t-contacts">5. Контакты и пожелания</div>
+    <div class="inputs-group">
+      <input type="text" id="client-car" class="input-field" maxlength="60" placeholder="Марка и модель (например: BMW X5, Camry 70)">
+      <input type="text" id="client-name" class="input-field" maxlength="50" placeholder="Ваше имя">
+      <div>
+        <input type="tel" id="client-phone" class="input-field" placeholder="+996 (___) __-__-__" autocomplete="tel">
+        <div id="phone-error" class="input-hint">Введите все 9 цифр номера: +996 (XXX) XX-XX-XX</div>
       </div>
-      <div class="service-price" id="price-polish">6 000 с</div>
+      <textarea id="client-comment" class="input-field" rows="2" maxlength="300" placeholder="Комментарий / пожелания к заказу (необязательно)"></textarea>
     </div>
-    <div class="service-card" onclick="toggleService(this, 'Бронепленка PPF (Зоны риска)', 18000, 'body')">
-      <div class="service-info">
-        <div class="service-check"></div>
-        <div class="service-text">
-          <div class="title">🛡 Бронепленка (Зоны риска)</div>
-          <div class="desc">Капот, бампер, фары, зеркала</div>
-        </div>
+
+    <div class="bottom-bar">
+      <div class="total-container">
+        <div class="total-label">Итого расчёт:</div>
+        <div class="total-price" id="total-display">0 сом</div>
       </div>
-      <div class="service-price" id="price-film">18 000 с</div>
+      <button class="submit-btn" id="submit-btn">Записаться</button>
     </div>
-  </div>
-
-  <!-- Вкладка: САЛОН -->
-  <div id="tab-salon" class="services-list tab-content" style="display:none;">
-    <div class="service-card" onclick="toggleService(this, 'Химчистка салона (с разбором)', 6000, 'salon')">
-      <div class="service-info">
-        <div class="service-check"></div>
-        <div class="service-text">
-          <div class="title">✨ Химчистка с полным разбором</div>
-          <div class="desc">Снятие сидений, пола + сушка</div>
-        </div>
-      </div>
-      <div class="service-price" id="price-clean-full">6 000 с</div>
-    </div>
-    <div class="service-card" onclick="toggleService(this, 'Экспресс-химчистка (без разбора)', 3500, 'salon')">
-      <div class="service-info">
-        <div class="service-check"></div>
-        <div class="service-text">
-          <div class="title">🧽 Экспресс-чистка салона</div>
-          <div class="desc">Без снятия сидений, быстрая сушка</div>
-        </div>
-      </div>
-      <div class="service-price" id="price-clean-exp">3 500 с</div>
-    </div>
-  </div>
-
-  <!-- Вкладка: СТЕКЛА -->
-  <div id="tab-glass" class="services-list tab-content" style="display:none;">
-    <div class="service-card" onclick="toggleService(this, 'Бронирование оптики (фар)', 2500, 'glass')">
-      <div class="service-info">
-        <div class="service-check"></div>
-        <div class="service-text">
-          <div class="title">💡 Полировка + Броня фар</div>
-          <div class="desc">Полиуретановая пленка от сколов</div>
-        </div>
-      </div>
-      <div class="service-price" id="price-lights">2 500 с</div>
-    </div>
-    <div class="service-card" onclick="toggleService(this, 'Антидождь (все стекла)', 1500, 'glass')">
-      <div class="service-info">
-        <div class="service-check"></div>
-        <div class="service-text">
-          <div class="title">🌧 Нано-антидождь Aquapel</div>
-          <div class="desc">Все стекла, гидрофоб до 6 месяцев</div>
-        </div>
-      </div>
-      <div class="service-price" id="price-rain">1 500 с</div>
-    </div>
-  </div>
-
-  <!-- 3. ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ (UPSELL) -->
-  <div class="section-title">3. Рекомендуем добавить (Upsell)</div>
-  <div class="addons-list">
-    <div class="addon-card" onclick="toggleAddon(this, 'Керамика кузова 1 слой', 4000)">
-      <div class="addon-info">
-        <div class="addon-checkbox"></div>
-        <div class="addon-title">✨ Керамика кузова (1 слой)</div>
-      </div>
-      <div class="addon-price">+4 000 с</div>
-    </div>
-
-    <div class="addon-card" onclick="toggleAddon(this, 'Озонация салона (сухой туман)', 800)">
-      <div class="addon-info">
-        <div class="addon-checkbox"></div>
-        <div class="addon-title">💨 Озонация (устранение запахов)</div>
-      </div>
-      <div class="addon-price">+800 с</div>
-    </div>
-
-    <div class="addon-card" onclick="toggleAddon(this, 'Детейлинг подкапотного пространства', 1200)">
-      <div class="addon-info">
-        <div class="addon-checkbox"></div>
-        <div class="addon-title">⚙️ Мойка и консервация мотора</div>
-      </div>
-      <div class="addon-price">+1 200 с</div>
-    </div>
-  </div>
-
-  <!-- 4. ВРЕМЯ -->
-  <div class="section-title">4. Удобное время</div>
-  <div class="time-grid">
-    <div class="time-pill active" onclick="selectTime(this, 'Утро (10:00 - 14:00)')">🌅 Утро (10-14)</div>
-    <div class="time-pill" onclick="selectTime(this, 'День (14:00 - 18:00)')">🏙 День (14-18)</div>
-    <div class="time-pill" onclick="selectTime(this, 'Вечер (18:00 - 21:00)')">🌆 Вечер (18-21)</div>
-    <div class="time-pill" onclick="selectTime(this, 'Как можно скорее')">⚡️ Срочно в ближайший бокс</div>
-  </div>
-
-  <!-- 5. КОНТАКТЫ -->
-  <div class="section-title">5. Контакты и пожелания</div>
-  <div class="inputs-group">
-    <input type="text" id="client-car" class="input-field" placeholder="Марка и модель (например: BMW X5, Camry 70)">
-    <input type="text" id="client-name" class="input-field" placeholder="Ваше имя">
-    
-    <!-- ТЕЛЕФОН С УМНЫМ BACKSPACE -->
-    <div>
-      <input type="tel" id="client-phone" class="input-field" placeholder="+996 (___) __-__-__" autocomplete="tel">
-      <div id="phone-error" class="input-hint">Введите все 9 цифр номера: +996 (XXX) XX-XX-XX</div>
-    </div>
-
-    <!-- ПОЛЕ КОММЕНТАРИЯ -->
-    <textarea id="client-comment" class="input-field" rows="2" placeholder="Комментарий / пожелания к заказу (необязательно)"></textarea>
-  </div>
-
-  <!-- ПЛАВАЮЩИЙ БАР С МЯГКИМ РОЛЛ-СЧЕТЧИКОМ -->
-  <div class="bottom-bar">
-    <div class="total-container">
-      <div class="total-label">Итого расчет:</div>
-      <div class="total-price" id="total-display">6 000 сом</div>
-    </div>
-    <button class="submit-btn" id="submit-btn" onclick="submitBooking()">Записаться</button>
   </div>
 
   <script>
     var tg = window.Telegram ? window.Telegram.WebApp : null;
-    if (tg) {
-      try {
-        tg.expand();
-        tg.enableClosingConfirmation();
-      } catch (e) {}
-    }
+    if (tg) { try { tg.ready(); tg.expand(); tg.enableClosingConfirmation(); } catch (e) {} }
 
-    var bookingData = {
-      carType: 'Седан',
-      carMultiplier: 1.0,
-      selectedServices: [
-        { name: 'Полировка кузова (3 шага)', basePrice: 6000, category: 'body' }
+    // ============ ДЕМО-ПРАЙС (когда ссылка открыта без параметра cfg) ============
+    var DEMO_CONFIG = {
+      ok: true,
+      studio: { name: 'Black Star Auto Detail', address: 'г. Бишкек, ул. Гражданская, 119',
+                gis_url: 'https://2gis.kg/bishkek/search/Бишкек%2C%20Гражданская%20119' },
+      cars: [ { name: 'Седан', mult: 1, icon: '🚗' }, { name: 'Кроссовер', mult: 1.25, icon: '🚙' },
+              { name: 'Джип / SUV', mult: 1.5, icon: '🛻' } ],
+      tabs: [
+        { name: '🚘 Кузов', services: [
+          { name: 'Глубокая полировка кузова', desc: 'Удаление царапин + зеркальный блеск', price: 6000, icon: '💎' },
+          { name: 'Бронеплёнка (зоны риска)', desc: 'Капот, бампер, фары, зеркала', price: 18000, icon: '🛡' } ] },
+        { name: '🪑 Салон', services: [
+          { name: 'Химчистка с полным разбором', desc: 'Снятие сидений, пола + сушка', price: 6000, icon: '✨' },
+          { name: 'Экспресс-чистка салона', desc: 'Без снятия сидений, быстрая сушка', price: 3500, icon: '🧽' } ] },
+        { name: '💎 Стёкла и фары', services: [
+          { name: 'Полировка + броня фар', desc: 'Полиуретановая плёнка от сколов', price: 2500, icon: '💡' },
+          { name: 'Нано-антидождь', desc: 'Все стёкла, гидрофоб до 6 месяцев', price: 1500, icon: '🌧' } ] }
       ],
-      addons: [],
-      time: 'Утро (10:00 - 14:00)'
+      addons: [ { name: 'Керамика кузова (1 слой)', price: 4000, icon: '✨' },
+                { name: 'Озонация (устранение запахов)', price: 800, icon: '💨' },
+                { name: 'Мойка и консервация мотора', price: 1200, icon: '⚙️' } ],
+      times: [ { name: 'Утро (10:00 - 14:00)', icon: '🌅' }, { name: 'День (14:00 - 18:00)', icon: '🏙' },
+               { name: 'Вечер (18:00 - 21:00)', icon: '🌆' }, { name: 'Как можно скорее', icon: '⚡️' } ]
     };
 
-    var basePrices = {
-      'Полировка кузова (3 шага)': 6000,
-      'Бронепленка PPF (Зоны риска)': 18000,
-      'Химчистка салона (с разбором)': 6000,
-      'Экспресс-химчистка (без разбора)': 3500,
-      'Бронирование оптики (фар)': 2500,
-      'Антидождь (все стекла)': 1500
-    };
+    var params = new URLSearchParams(location.search);
+    var STUDIO = params.get('studio') || 'demo';
+    var CFG_URL = params.get('cfg') || '';
+    var CACHE_KEY = 'cfg_' + STUDIO;
 
-    var currentDisplayPrice = 6000;
+    var cfg = null;
+    var state = { car: null, services: [], addons: [], time: null, tab: 0 };
+    var currentDisplayPrice = 0;
 
-    // Переключение вкладок
-    function switchTab(btn, tabId) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-      document.getElementById(tabId).style.display = 'flex';
-      triggerHaptic();
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
     }
-
-    // Выбор кузова
-    function selectCar(el, type, multiplier) {
-      document.querySelectorAll('.car-card').forEach(c => c.classList.remove('active'));
-      el.classList.add('active');
-
-      bookingData.carType = type;
-      bookingData.carMultiplier = multiplier;
-
-      updateServicePricesUI();
-      calculateTotal();
-      triggerHaptic();
+    function fmt(n) { return Math.round(n).toLocaleString('ru-RU').replace(/\u00a0/g, ' '); }
+    function triggerHaptic() { if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
+    function carMult() {
+      var c = cfg.cars.filter(function (x) { return x.name === state.car; })[0];
+      return c ? Number(c.mult) || 1 : 1;
     }
-
-    function updateServicePricesUI() {
-      document.getElementById('price-polish').innerText = Math.round(basePrices['Полировка кузова (3 шага)'] * bookingData.carMultiplier).toLocaleString() + ' с';
-      document.getElementById('price-film').innerText = Math.round(basePrices['Бронепленка PPF (Зоны риска)'] * bookingData.carMultiplier).toLocaleString() + ' с';
-      document.getElementById('price-clean-full').innerText = Math.round(basePrices['Химчистка салона (с разбором)'] * bookingData.carMultiplier).toLocaleString() + ' с';
-      document.getElementById('price-clean-exp').innerText = Math.round(basePrices['Экспресс-химчистка (без разбора)'] * bookingData.carMultiplier).toLocaleString() + ' с';
-      document.getElementById('price-lights').innerText = Math.round(basePrices['Бронирование оптики (фар)'] * bookingData.carMultiplier).toLocaleString() + ' с';
-      document.getElementById('price-rain').innerText = Math.round(basePrices['Антидождь (все стекла)'] * bookingData.carMultiplier).toLocaleString() + ' с';
+    function findService(name) {
+      for (var i = 0; i < cfg.tabs.length; i++)
+        for (var j = 0; j < cfg.tabs[i].services.length; j++)
+          if (cfg.tabs[i].services[j].name === name) return cfg.tabs[i].services[j];
+      return null;
     }
+    function findAddon(name) { return cfg.addons.filter(function (a) { return a.name === name; })[0] || null; }
 
-    // Мультивыбор услуг
-    function toggleService(el, name, basePrice, category) {
-      el.classList.toggle('active');
+    // ======================= ОТРИСОВКА ИЗ ПРАЙСА =======================
+    function render(newCfg) {
+      cfg = newCfg;
+      document.getElementById('studio-name').textContent = cfg.studio.name || 'Детейлинг';
+      document.title = cfg.studio.name || 'Детейлинг';
+      var gis = document.getElementById('gis-link');
+      if (cfg.studio.address) {
+        gis.style.display = '';
+        gis.href = cfg.studio.gis_url || '#';
+        gis.innerHTML = '📍 ' + esc(cfg.studio.address) + (cfg.studio.gis_url ? ' • <b>Построить маршрут в 2GIS ↗</b>' : '');
+      } else { gis.style.display = 'none'; }
 
-      var foundIdx = bookingData.selectedServices.findIndex(s => s.name === name);
-      if (foundIdx > -1) {
-        bookingData.selectedServices.splice(foundIdx, 1);
-      } else {
-        bookingData.selectedServices.push({ name: name, basePrice: basePrice, category: category });
-      }
+      // Сохраняем выбор клиента, если прайс обновился на лету
+      if (!cfg.cars.some(function (c) { return c.name === state.car; })) state.car = cfg.cars.length ? cfg.cars[0].name : null;
+      state.services = state.services.filter(function (n) { return !!findService(n); });
+      state.addons = state.addons.filter(function (n) { return !!findAddon(n); });
+      if (!cfg.times.some(function (t) { return t.name === state.time; })) state.time = cfg.times.length ? cfg.times[0].name : 'Ближайшее';
+      if (state.tab >= cfg.tabs.length) state.tab = 0;
 
+      // Кузов
+      document.getElementById('car-grid').innerHTML = cfg.cars.map(function (c, i) {
+        return '<div class="car-card' + (c.name === state.car ? ' active' : '') + '" data-car="' + i + '">' +
+          '<div class="icon">' + esc(c.icon) + '</div><div class="name">' + esc(c.name) + '</div></div>';
+      }).join('');
+
+      // Вкладки и услуги
+      document.getElementById('category-tabs').innerHTML = cfg.tabs.map(function (t, i) {
+        return '<button class="tab-btn' + (i === state.tab ? ' active' : '') + '" data-tab="' + i + '">' +
+          esc(t.name) + ' <span class="tab-badge" id="badge-' + i + '">0</span></button>';
+      }).join('');
+      document.getElementById('tabs-content').innerHTML = cfg.tabs.map(function (t, i) {
+        return '<div class="services-list tab-content" id="tab-' + i + '" style="display:' + (i === state.tab ? 'flex' : 'none') + '">' +
+          t.services.map(function (s, j) {
+            var on = state.services.indexOf(s.name) > -1;
+            return '<div class="service-card' + (on ? ' active' : '') + '" data-tab="' + i + '" data-svc="' + j + '">' +
+              '<div class="service-info"><div class="service-check"></div><div class="service-text">' +
+              '<div class="title">' + esc((s.icon ? s.icon + ' ' : '') + s.name) + '</div>' +
+              (s.desc ? '<div class="desc">' + esc(s.desc) + '</div>' : '') + '</div></div>' +
+              '<div class="service-price" data-base="' + Number(s.price) + '"></div></div>';
+          }).join('') + '</div>';
+      }).join('');
+
+      // Допы
+      var n = 3;
+      document.getElementById('addons-block').style.display = cfg.addons.length ? '' : 'none';
+      if (cfg.addons.length) document.getElementById('t-addons').textContent = (n++) + '. Рекомендуем добавить';
+      document.getElementById('addons-list').innerHTML = cfg.addons.map(function (a, i) {
+        var on = state.addons.indexOf(a.name) > -1;
+        return '<div class="addon-card' + (on ? ' active' : '') + '" data-addon="' + i + '">' +
+          '<div class="addon-info"><div class="addon-checkbox"></div><div class="addon-title">' +
+          esc((a.icon ? a.icon + ' ' : '') + a.name) + '</div></div>' +
+          '<div class="addon-price">+' + fmt(a.price) + ' с</div></div>';
+      }).join('');
+
+      // Время
+      document.getElementById('times-block').style.display = cfg.times.length ? '' : 'none';
+      if (cfg.times.length) document.getElementById('t-times').textContent = (n++) + '. Удобное время';
+      document.getElementById('time-grid').innerHTML = cfg.times.map(function (t, i) {
+        return '<div class="time-pill' + (t.name === state.time ? ' active' : '') + '" data-time="' + i + '">' +
+          esc((t.icon ? t.icon + ' ' : '') + t.name) + '</div>';
+      }).join('');
+      document.getElementById('t-contacts').textContent = n + '. Контакты и пожелания';
+
+      document.getElementById('load-state').style.display = 'none';
+      document.getElementById('app').style.display = '';
+      updatePrices();
       updateTabBadges();
-      calculateTotal();
-      triggerHaptic();
+      calculateTotal(true);
+    }
+
+    function updatePrices() {
+      var m = carMult();
+      document.querySelectorAll('.service-price').forEach(function (el) {
+        el.textContent = fmt(Number(el.getAttribute('data-base')) * m) + ' с';
+      });
     }
 
     function updateTabBadges() {
-      var counts = { body: 0, salon: 0, glass: 0 };
-      bookingData.selectedServices.forEach(s => {
-        if (counts[s.category] !== undefined) counts[s.category]++;
-      });
-
-      ['body', 'salon', 'glass'].forEach(cat => {
-        var badge = document.getElementById('badge-' + cat);
-        if (counts[cat] > 0) {
-          badge.innerText = counts[cat];
-          badge.style.display = 'inline-block';
-        } else {
-          badge.style.display = 'none';
-        }
+      cfg.tabs.forEach(function (t, i) {
+        var cnt = t.services.filter(function (s) { return state.services.indexOf(s.name) > -1; }).length;
+        var b = document.getElementById('badge-' + i);
+        if (!b) return;
+        b.textContent = cnt;
+        b.style.display = cnt > 0 ? 'inline-block' : 'none';
       });
     }
 
-    // Допы
-    function toggleAddon(el, name, price) {
-      el.classList.toggle('active');
-
-      var foundIdx = bookingData.addons.findIndex(a => a.name === name);
-      if (foundIdx > -1) {
-        bookingData.addons.splice(foundIdx, 1);
-      } else {
-        bookingData.addons.push({ name: name, price: price });
+    // ======================= КЛИКИ =======================
+    document.addEventListener('click', function (e) {
+      var el;
+      if ((el = e.target.closest('[data-car]'))) {
+        state.car = cfg.cars[+el.getAttribute('data-car')].name;
+        document.querySelectorAll('.car-card').forEach(function (c) { c.classList.remove('active'); });
+        el.classList.add('active');
+        updatePrices(); calculateTotal(); triggerHaptic();
+      } else if ((el = e.target.closest('.service-card'))) {
+        var s = cfg.tabs[+el.getAttribute('data-tab')].services[+el.getAttribute('data-svc')];
+        var k = state.services.indexOf(s.name);
+        if (k > -1) state.services.splice(k, 1); else state.services.push(s.name);
+        el.classList.toggle('active');
+        updateTabBadges(); calculateTotal(); triggerHaptic();
+      } else if ((el = e.target.closest('.tab-btn'))) {
+        state.tab = +el.getAttribute('data-tab');
+        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+        el.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(function (c) { c.style.display = 'none'; });
+        document.getElementById('tab-' + state.tab).style.display = 'flex';
+        triggerHaptic();
+      } else if ((el = e.target.closest('[data-addon]'))) {
+        var a = cfg.addons[+el.getAttribute('data-addon')];
+        var j = state.addons.indexOf(a.name);
+        if (j > -1) state.addons.splice(j, 1); else state.addons.push(a.name);
+        el.classList.toggle('active');
+        calculateTotal(); triggerHaptic();
+      } else if ((el = e.target.closest('[data-time]'))) {
+        state.time = cfg.times[+el.getAttribute('data-time')].name;
+        document.querySelectorAll('.time-pill').forEach(function (t) { t.classList.remove('active'); });
+        el.classList.add('active');
+        triggerHaptic();
+      } else if ((el = e.target.closest('#gis-link'))) {
+        if (tg && tg.openLink && cfg.studio.gis_url) { e.preventDefault(); tg.openLink(cfg.studio.gis_url); }
+      } else if (e.target.closest('#submit-btn')) {
+        submitBooking();
+      } else if (e.target.closest('#retry-btn')) {
+        loadConfig();
       }
+    });
 
-      calculateTotal();
-      triggerHaptic();
-    }
-
-    // Время
-    function selectTime(el, time) {
-      document.querySelectorAll('.time-pill').forEach(t => t.classList.remove('active'));
-      el.classList.add('active');
-      bookingData.time = time;
-      triggerHaptic();
-    }
-
-    // ==========================================
-    // СПОКОЙНЫЙ ПЛАВНЫЙ РОЛЛ СЧЕТЧИКА (БЕЗ ПУЛЬСАЦИИ)
-    // ==========================================
+    // ======================= СЧЁТЧИК =======================
     var animationFrameId = null;
-
-    function calculateTotal() {
-      var servicesSum = bookingData.selectedServices.reduce((sum, s) => sum + Math.round(s.basePrice * bookingData.carMultiplier), 0);
-      var addonsSum = bookingData.addons.reduce((sum, a) => sum + a.price, 0);
-      var targetPrice = servicesSum + addonsSum;
-
-      animateRollPrice(currentDisplayPrice, targetPrice);
-      currentDisplayPrice = targetPrice;
+    function calculateTotal(instant) {
+      var m = carMult();
+      var target = 0;
+      state.services.forEach(function (n) { var s = findService(n); if (s) target += Math.round(Number(s.price) * m); });
+      state.addons.forEach(function (n) { var a = findAddon(n); if (a) target += Math.round(Number(a.price)); });
+      animateRollPrice(instant ? target : currentDisplayPrice, target);
+      currentDisplayPrice = target;
     }
-
     function animateRollPrice(start, end) {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
-
       var el = document.getElementById('total-display');
-      if (start === end) {
-        el.innerText = end.toLocaleString() + ' сом';
-        return;
-      }
-
-      var duration = 220; // 220ms — быстрая, плавная прокрутка
-      var startTime = performance.now();
-
-      function roll(currentTime) {
-        var elapsed = currentTime - startTime;
-        var progress = Math.min(elapsed / duration, 1);
-        
-        // Easing out cubic для мягкой остановки
-        var easeOut = 1 - Math.pow(1 - progress, 3);
-        var current = Math.round(start + (end - start) * easeOut);
-        
-        el.innerText = current.toLocaleString() + ' сом';
-
-        if (progress < 1) {
-          animationFrameId = requestAnimationFrame(roll);
-        } else {
-          el.innerText = end.toLocaleString() + ' сом';
-        }
+      if (start === end) { el.textContent = fmt(end) + ' сом'; return; }
+      var duration = 220, t0 = performance.now();
+      function roll(t) {
+        var p = Math.min((t - t0) / duration, 1);
+        var ease = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(start + (end - start) * ease) + ' сом';
+        if (p < 1) animationFrameId = requestAnimationFrame(roll); else el.textContent = fmt(end) + ' сом';
       }
       animationFrameId = requestAnimationFrame(roll);
     }
 
-    function triggerHaptic() {
-      if (tg && tg.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('light');
+    // ======================= ЗАГРУЗКА ПРАЙСА =======================
+    function validCfg(c) { return c && c.ok && c.studio && c.cars && c.cars.length && c.tabs && c.tabs.length; }
+    function showLoadError() {
+      var box = document.getElementById('load-state');
+      box.style.display = '';
+      box.innerHTML = '😔 Не удалось загрузить прайс. Проверьте интернет.<br><br><button class="submit-btn" id="retry-btn">Повторить</button>';
+    }
+    function loadConfig() {
+      if (!CFG_URL) { render(DEMO_CONFIG); return; }
+      var cachedOk = false;
+      try {
+        var cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+        if (validCfg(cached)) { render(cached); cachedOk = true; }   // мгновенно показываем сохранённый
+      } catch (e) {}
+      if (!cachedOk) {
+        var box = document.getElementById('load-state');
+        box.style.display = ''; box.textContent = '⏳ Загружаем прайс...';
       }
+      var url = CFG_URL + (CFG_URL.indexOf('?') > -1 ? '&' : '?') + 'action=config&t=' + Date.now();
+      var ctrl = window.AbortController ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 15000);
+      fetch(url, ctrl ? { signal: ctrl.signal } : {})
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          clearTimeout(timer);
+          if (!validCfg(data)) throw new Error('bad config');
+          localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+          render(data);                                                   // обновляем на свежий
+        })
+        .catch(function () { clearTimeout(timer); if (!cachedOk) showLoadError(); });
     }
 
-   function open2Gis(e) {
-  var url = "https://2gis.kg/bishkek/search/Бишкек%2C%20Гражданская%20119";
-  if (tg && tg.openLink) {
-    e.preventDefault();
-    tg.openLink(url);
-  }
-}
-
-    // =====================================================
-    // УМНАЯ МАСКА ТЕЛЕФОНА С ПЛАВНЫМ BACKSPACE (БЕЗ ЗАСТРЕВАНИЙ)
-    // =====================================================
+    // ======================= МАСКА ТЕЛЕФОНА =======================
     var phoneInput = document.getElementById('client-phone');
-
     function formatKGPhoneString(digitsOnly) {
       if (!digitsOnly) return '+996';
-      
       var d = digitsOnly;
       if (d.startsWith('0')) d = '996' + d.substring(1);
       if (!d.startsWith('996')) d = '996' + d;
-      d = d.substring(0, 12); // ровно 12 цифр (996 + 9 цифр)
-
+      d = d.substring(0, 12);
       var res = '+996';
       if (d.length > 3) res += ' (' + d.substring(3, 6);
       if (d.length >= 6) res += ') ' + d.substring(6, 8);
@@ -695,73 +630,43 @@
       if (d.length >= 10) res += '-' + d.substring(10, 12);
       return res;
     }
-
-    // ПЕРЕХВАТ BACKSPACE: чтобы не застревать на разделителях '-', ')' или пробеле
-    phoneInput.addEventListener('keydown', function(e) {
+    phoneInput.addEventListener('keydown', function (e) {
       if (e.key === 'Backspace' && this.selectionStart === this.selectionEnd) {
-        var cursor = this.selectionStart;
-        var val = this.value;
-
-        // Не даем удалять префикс '+996'
-        if (cursor <= 5) {
-          e.preventDefault();
-          return;
-        }
-
+        var cursor = this.selectionStart, val = this.value;
+        if (cursor <= 5) { e.preventDefault(); return; }
         var prevChar = val[cursor - 1];
-        // Если прямо перед курсором тире, скобка или пробел — удаляем цифру ПЕРЕД ними!
         if (['-', ' ', ')', '('].includes(prevChar)) {
           e.preventDefault();
           var digits = val.replace(/\D/g, '');
-          var digitsBeforeCursor = val.slice(0, cursor).replace(/\D/g, '').length;
-
-          if (digitsBeforeCursor > 3) {
-            var newDigits = digits.slice(0, digitsBeforeCursor - 1) + digits.slice(digitsBeforeCursor);
-            this.value = formatKGPhoneString(newDigits);
-            
-            // Ставим курсор на правильное место
-            var newCursor = Math.max(5, cursor - 2);
-            this.setSelectionRange(newCursor, newCursor);
+          var before = val.slice(0, cursor).replace(/\D/g, '').length;
+          if (before > 3) {
+            this.value = formatKGPhoneString(digits.slice(0, before - 1) + digits.slice(before));
+            var nc = Math.max(5, cursor - 2);
+            this.setSelectionRange(nc, nc);
           }
         }
       }
     });
-
-    phoneInput.addEventListener('input', function(e) {
-      var raw = e.target.value.replace(/\D/g, '');
-      e.target.value = formatKGPhoneString(raw);
+    phoneInput.addEventListener('input', function (e) {
+      e.target.value = formatKGPhoneString(e.target.value.replace(/\D/g, ''));
       document.getElementById('phone-error').style.display = 'none';
       e.target.classList.remove('error');
     });
 
-    // ==========================================
-    // ОТПРАВКА ЗАКАЗА
-    // ==========================================
+    // ======================= ОТПРАВКА =======================
     function submitBooking() {
       var carModel = document.getElementById('client-car').value.trim() || 'Не указана';
       var name = document.getElementById('client-name').value.trim();
       var comment = document.getElementById('client-comment').value.trim() || 'Нет';
       var rawPhone = phoneInput.value.replace(/\D/g, '');
 
-      var lastSubmit = localStorage.getItem('last_booking_time');
-      var now = Date.now();
-      if (lastSubmit && (now - lastSubmit < 60000)) {
-        alert('Вы уже отправили заявку! Мастер студии свяжется с вами в течение 10 минут.');
+      var lastSubmit = Number(localStorage.getItem('last_booking_' + STUDIO) || 0);
+      if (Date.now() - lastSubmit < 60000) {
+        alert('Вы уже отправили заявку! Мастер студии свяжется с вами в ближайшее время.');
         return;
       }
-
-      if (bookingData.selectedServices.length === 0 && bookingData.addons.length === 0) {
-        alert('Пожалуйста, выберите хотя бы одну услугу для записи');
-        return;
-      }
-
-      if (!name || name.length < 2) {
-        alert('Пожалуйста, укажите ваше имя');
-        document.getElementById('client-name').focus();
-        return;
-      }
-
-      // Проверка: ровно 12 цифр
+      if (!state.services.length && !state.addons.length) { alert('Пожалуйста, выберите хотя бы одну услугу'); return; }
+      if (!name || name.length < 2) { alert('Пожалуйста, укажите ваше имя'); document.getElementById('client-name').focus(); return; }
       if (rawPhone.length !== 12) {
         phoneInput.classList.add('error');
         document.getElementById('phone-error').style.display = 'block';
@@ -769,40 +674,29 @@
         return;
       }
 
-      var submitBtn = document.getElementById('submit-btn');
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'Отправка заявки...';
-
-      var servicesList = bookingData.selectedServices.map(s => s.name).join(' + ') || 'Только доп. услуги';
-      var addonsList = bookingData.addons.map(a => a.name).join(', ') || 'Нет';
+      var btn = document.getElementById('submit-btn');
+      btn.disabled = true; btn.textContent = 'Отправка заявки...';
 
       var payload = {
-        carType: bookingData.carType,
-        carModel: carModel,
-        services: servicesList,
-        addons: addonsList,
-        time: bookingData.time,
-        totalPrice: currentDisplayPrice,
-        comment: comment,
-        name: name,
-        phone: phoneInput.value
+        v: 2, studio: STUDIO,
+        carType: state.car, carModel: carModel,
+        services: state.services.slice(), addons: state.addons.slice(),
+        time: state.time, totalPrice: currentDisplayPrice,
+        comment: comment, name: name, phone: phoneInput.value
       };
+      localStorage.setItem('last_booking_' + STUDIO, String(Date.now()));
 
-      localStorage.setItem('last_booking_time', now);
-
-      if (tg && tg.sendData) {
+      if (tg && tg.sendData && tg.platform !== 'unknown') {
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        tg.sendData(JSON.stringify(payload));
+        tg.sendData(JSON.stringify(payload));   // приложение закроется, чек придёт от бота
       } else {
-        alert('✅ Заявка успешно сформирована:\n' + JSON.stringify(payload, null, 2));
-        setTimeout(function() {
-          submitBtn.disabled = false;
-          submitBtn.innerText = 'Записаться';
-        }, 3000);
+        alert('✅ Демо-режим (открыто вне Telegram). Заявка:\n' + JSON.stringify(payload, null, 2));
+        localStorage.removeItem('last_booking_' + STUDIO);
+        setTimeout(function () { btn.disabled = false; btn.textContent = 'Записаться'; }, 1500);
       }
     }
 
-    updateTabBadges();
+    loadConfig();
   </script>
 </body>
 </html>
